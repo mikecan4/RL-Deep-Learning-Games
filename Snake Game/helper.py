@@ -17,9 +17,9 @@ def plot(scores, mean_scores):
     plt.show(block=False)
     plt.pause(.05)
 
-def save_plot(scores, mean_scores, games):
+def save_plot(scores, mean_scores, games, file_path):
     print("Saving photo")
-    file = './Snake Game/model/graph_' + str(games) + '.png'
+    file = file_path + '/graph_' + str(games) + '.png'
     plt.title('Training...')
     plt.xlabel('Number of Games')
     plt.ylabel('Score')

@@ -4,6 +4,7 @@ import numpy as np
 from collections import deque
 import argparse
 from str2bool import str2bool
+import os
 from game import SnakeGameAI, Direction, Point
 from model import Linear_QNet, QTrainer
 from helper import plot, save_plot
@@ -12,6 +13,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--trained', default=False, type=str2bool, help='Choose to use pretrained model or not')
 parser.add_argument('--plot', default=True, type=str2bool, help='Choose to plot the training')
+parser.add_argument('--model', default='./Snake Game/model', help='Path to model')
 
 args = parser.parse_args()
 
@@ -30,7 +32,9 @@ class Agent:
         self.model = Linear_QNet(11, 256, 3)
         # load trained model if asked for
         if args.trained:
-            self.model.load_state_dict(torch.load('./Snake Game/trained/model.pth'))
+            args.model = './Snake Game/trained'
+        if os.path.exists(args.model + '/model.pth'):
+            self.model.load_state_dict(torch.load(args.model + '/model.pth'))
             self.model.eval()
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
@@ -145,7 +149,7 @@ def train():
 
             if score > record:
                 record = score
-                agent.model.save(args.trained)
+                agent.model.save(args.model)
             print('Game', agent.n_games, 'Score', score, 'Record:', record)
 
             # plot
@@ -156,7 +160,7 @@ def train():
             if args.plot:
                 plot(plot_scores, plot_avg)
             if agent.n_games % 100 == 0:
-                save_plot(plot_scores, plot_avg, agent.n_games)
+                save_plot(plot_scores, plot_avg, agent.n_games, args.model)
 
 if __name__ == "__main__":
     train()
