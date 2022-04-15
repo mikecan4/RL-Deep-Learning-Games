@@ -30,7 +30,7 @@ BLUE2 = (0, 100, 255)
 BLACK = (0,0,0)
 
 BLOCK_SIZE = 20
-SPEED = 20
+SPEED = 100 # original 20 (increasing the value makes it run faster)
 
 class SnakeGameAI:
     
