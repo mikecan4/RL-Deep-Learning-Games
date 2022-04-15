@@ -6,7 +6,7 @@ import argparse
 from str2bool import str2bool
 from game import SnakeGameAI, Direction, Point
 from model import Linear_QNet, QTrainer
-from helper import plot
+from helper import plot, save_plot
 
 parser = argparse.ArgumentParser()
 
@@ -149,12 +149,14 @@ def train():
             print('Game', agent.n_games, 'Score', score, 'Record:', record)
 
             # plot
+            plot_scores.append(score)
+            total_score += score
+            mean_score = total_score / agent.n_games
+            plot_avg.append(mean_score)
             if args.plot:
-                plot_scores.append(score)
-                total_score += score
-                mean_score = total_score / agent.n_games
-                plot_avg.append(mean_score)
                 plot(plot_scores, plot_avg)
+            if agent.n_games % 100 == 0:
+                save_plot(plot_scores, plot_avg, agent.n_games)
 
 if __name__ == "__main__":
     train()
