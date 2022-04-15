@@ -15,8 +15,10 @@ class Linear_QNet(nn.Module):
         x = self.linear2(x)
         return x
 
-    def save(self, file_name='model.pth'):
+    def save(self, trained, file_name='model.pth'):
         model_folder_path = './Snake Game/model'
+        if trained:
+            model_folder_path = './Snake Game/trained'
         if not os.path.exists(model_folder_path):
             os.makedirs(model_folder_path)
         file_name = os.path.join(model_folder_path, file_name)
