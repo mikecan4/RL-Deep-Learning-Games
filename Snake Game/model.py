@@ -4,9 +4,9 @@ import torch.optim as optim
 import torch.nn.functional as F
 import os
 
-class Linear_QNet(nn.Module):
+class DQN(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
-        super().__init__()
+        super(DQN, self).__init__()
         self.linear1 = nn.Linear(input_size, hidden_size)
         self.linear2 = nn.Linear(hidden_size, output_size)
 
@@ -15,7 +15,7 @@ class Linear_QNet(nn.Module):
         x = self.linear2(x)
         return x
 
-    def save(self,file_path, file_name='model.pth'):
+    def save(self,file_path, file_name='dqn_model.pth'):
         model_folder_path = file_path
         if not os.path.exists(model_folder_path):
             os.makedirs(model_folder_path)
@@ -61,3 +61,30 @@ class QTrainer:
         loss.backward()
 
         self.optimizer.step()
+
+class Dueling_DQN(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(Dueling_DQN, self).__init__()
+        self.linear1 = nn.Linear(input_size, hidden_size)
+        self.linear1_adv = nn.Linear(hidden_size, hidden_size)
+        self.linear1_val = nn.Linear(hidden_size, hidden_size)
+
+        self.linear2_adv = nn.Linear(hidden_size, output_size)
+        self.linear2_val = nn.Linear(hidden_size, 1)
+
+    def forward(self, x):
+        y = F.relu(self.linear1(x))
+        value = F.relu(self.linear1_adv(y))
+        adv = F.relu(self.linear1_val(y))
+
+        value = self.linear2_adv(value)
+        adv = self.linear2_adv(adv)
+
+        return value + (adv - adv.mean())
+
+    def save(self,file_path, file_name='dueling_model.pth'):
+        model_folder_path = file_path
+        if not os.path.exists(model_folder_path):
+            os.makedirs(model_folder_path)
+        file_name = os.path.join(model_folder_path, file_name)
+        torch.save(self.state_dict(), file_name)

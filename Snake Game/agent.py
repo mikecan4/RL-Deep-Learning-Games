@@ -6,14 +6,18 @@ import argparse
 from str2bool import str2bool
 import os
 from game import SnakeGameAI, Direction, Point
-from model import Linear_QNet, QTrainer
+from model import DQN, QTrainer, Dueling_DQN
 from helper import plot, save_plot
 
 parser = argparse.ArgumentParser()
 
+
+parser.add_argument('--model', default='./Snake Game/model', help='Path to model')
+parser.add_argument('--save-model', default=True, type=str2bool, help='Choose to save the model when training')
+parser.add_argument('--arch', default=0, type=int, help='O: DQN, 1: Double DQN, 2: Dueling DQN')
 parser.add_argument('--trained', default=False, type=str2bool, help='Choose to use pretrained model or not')
 parser.add_argument('--plot', default=True, type=str2bool, help='Choose to plot the training')
-parser.add_argument('--model', default='./Snake Game/model', help='Path to model')
+parser.add_argument('--save-plot', default=False, type=str2bool, help='Choose to save the plots')
 
 args = parser.parse_args()
 
@@ -29,14 +33,29 @@ class Agent:
         self.gamma = 0.9 # discount rate
         self.memory = deque(maxlen=MAX_MEMORY) # removes old mem
         # model, trainer
-        self.model = Linear_QNet(11, 256, 3)
-        # load trained model if asked for
-        if args.trained:
-            args.model = './Snake Game/trained'
-        if os.path.exists(args.model + '/model.pth'):
-            self.model.load_state_dict(torch.load(args.model + '/model.pth'))
-            self.model.eval()
-        self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
+        if args.arch == 0: # DQN
+            self.model = DQN(11, 256, 3)
+            # load trained model if asked for
+            if args.trained:
+                args.model = './Snake Game/trained'
+            if os.path.exists(args.model + '/dqn_model.pth'):
+                self.model.load_state_dict(torch.load(args.model + '/dqn_model.pth'))
+                self.model.eval()
+            self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
+        # TODO: double dqn
+        # elif args.arch == 1:
+        elif args.arch == 2: # Dueling DQN
+            self.model = Dueling_DQN(11, 256, 3)
+            # load trained model if asked for
+            if args.trained:
+                args.model = './Snake Game/trained'
+            if os.path.exists(args.model + '/dueling_model.pth'):
+                self.model.load_state_dict(torch.load(args.model + '/dueling_model.pth'))
+                self.model.eval()
+            self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
+        else:
+            raise argparse.ArgumentTypeError('Use -h to see how --arch works')
+
 
     def get_state(self, game):
         head = game.snake[0]
@@ -147,7 +166,7 @@ def train():
             agent.n_games += 1
             agent.train_long_memory()
 
-            if score > record:
+            if score > record and args.save_model:
                 record = score
                 agent.model.save(args.model)
             print('Game', agent.n_games, 'Score', score, 'Record:', record)
@@ -159,7 +178,7 @@ def train():
             plot_avg.append(mean_score)
             if args.plot:
                 plot(plot_scores, plot_avg)
-            if agent.n_games % 100 == 0:
+            if agent.n_games % 100 == 0 and args.save_plot:
                 save_plot(plot_scores, plot_avg, agent.n_games, args.model)
 
 if __name__ == "__main__":
