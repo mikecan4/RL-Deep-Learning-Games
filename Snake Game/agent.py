@@ -3,14 +3,15 @@ import random
 import numpy as np
 from collections import deque
 import argparse
+from str2bool import str2bool
 from game import SnakeGameAI, Direction, Point
 from model import Linear_QNet, QTrainer
 from helper import plot
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--trained', default=False, type=bool, help='Choose to use pretrained model or not')
-parser.add_argument('--plot', default=True, type=bool, help='Choose to plot the training')
+parser.add_argument('--trained', default=False, type=str2bool, help='Choose to use pretrained model or not')
+parser.add_argument('--plot', default=True, type=str2bool, help='Choose to plot the training')
 
 args = parser.parse_args()
 
